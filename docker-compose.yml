@@ -1,0 +1,52 @@
+version: '2'
+services:
+  jenkins_master:
+    image: garethjevans/jenkins:v2.7.4.0
+    volumes:
+      - ./jobs:/var/jenkins_home/jobs
+      - ./init.groovy.d/:/var/jenkins_home/init.groovy.d
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+  jenkins_maven:
+    links:
+      - jenkins_master:master
+    image: garethjevans/jenkinsslave-maven:v1.3.5
+    environment:
+      - JENKINS_MASTER=http://master:8080/
+      - JENKINS_USERNAME=administrator
+      - JENKINS_PASSWORD=administrator
+      - JENKINS_EXECUTORS=1
+      - JENKINS_LABELS=maven
+      - JENKINS_MODE=exclusive
+      - JENKINS_NAME=maven-slave
+      - LANG=C.UTF-8
+  jenkins_deploy:
+    links:
+      - jenkins_master:master
+    image: garethjevans/jenkinsslave-deploy:v1.3
+    environment:
+      - JENKINS_MASTER=http://master:8080/
+      - JENKINS_USERNAME=administrator
+      - JENKINS_PASSWORD=administrator
+      - JENKINS_EXECUTORS=1
+      - JENKINS_LABELS=deploy
+      - JENKINS_MODE=exclusive
+      - JENKINS_NAME=deploy-slave
+      - LANG=C.UTF-8
+  jenkins_golang:
+    links:
+      - jenkins_master:master
+    image: garethjevans/jenkinsslave-golang:v1.0
+    environment:
+      - JENKINS_MASTER=http://master:8080/
+      - JENKINS_USERNAME=administrator
+      - JENKINS_PASSWORD=administrator
+      - JENKINS_EXECUTORS=1
+      - JENKINS_LABELS=golang
+      - JENKINS_MODE=exclusive
+      - JENKINS_NAME=golang-slave
+      - LANG=C.UTF-8
+
+#!/bin/sh
